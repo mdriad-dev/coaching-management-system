@@ -19,6 +19,7 @@ import { RouterLink } from '@angular/router';
           <div class="hero-trust"><span class="trust-avatars"><i>R</i><i>S</i><i>A</i></span><span>Designed for focused teams<br><b>One place. Every possibility.</b></span></div>
         </div>
         <div class="hero-art" aria-label="Illustration of the coaching management dashboard">
+          <div class="ambient-scene" aria-hidden="true"><span class="ambient-glow glow-one"></span><span class="ambient-glow glow-two"></span><span class="ambient-glow glow-three"></span><i class="particle particle-one"></i><i class="particle particle-two"></i><i class="particle particle-three"></i><i class="particle particle-four"></i><i class="particle particle-five"></i></div>
           <div class="art-orb orb-a"></div><div class="art-orb orb-b"></div>
           <div class="dashboard-preview"><div class="preview-top"><span class="mini-logo">C</span><span></span><i></i><i></i><b>SA</b></div><div class="preview-body"><div class="preview-side"><strong>CoachingCMS</strong><small>▦ Overview</small><small>♙ Students</small><small>▤ Courses</small><small>◷ Attendance</small></div><div class="preview-main"><small>GOOD MORNING, SYSTEM</small><h3>Here’s your overview.</h3><div class="preview-stats"><i></i><i></i><i></i></div><div class="preview-lines"><i></i><i></i><i></i><i></i></div></div></div></div>
           <div class="floating-card float-students"><span class="float-icon">♙</span><div><b>Active students</b><strong>2,480</strong></div><span class="up">↗ 12%</span></div>
