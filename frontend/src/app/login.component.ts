@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <main class="login-page">
       <section class="login-visual" aria-label="Coaching management illustration">
@@ -31,7 +32,7 @@ import { AuthService } from './auth.service';
             @if (error) { <p class="error">{{ error }}</p> }
             <button class="button login-button" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Sign in to dashboard' }} <span>→</span></button>
           </form>
-          <p class="login-note">Your access is protected by branch-level authorization.</p>
+          <p class="login-note">Your access is protected by branch-level authorization.</p><a class="back-home" routerLink="/">← Back to project overview</a>
         </div>
       </section>
     </main>
@@ -44,7 +45,7 @@ export class LoginComponent {
   submit(): void {
     this.loading = true; this.error = '';
     this.auth.login(this.email, this.password).subscribe({
-      next: () => this.router.navigateByUrl('/'),
+      next: () => this.router.navigateByUrl('/dashboard'),
       error: (response: { error?: { detail?: string } }) => {
         this.error = response.error?.detail ?? 'Unable to sign in.';
         this.loading = false;

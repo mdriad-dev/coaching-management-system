@@ -404,9 +404,11 @@ are intentionally retained as an auditable ledger and are not silently deleted.
 ### Frontend
 
 The initial Angular application is available under `frontend/`. It provides a
-protected login flow, bearer-token HTTP interceptor, branch selector, student
-registration/listing, and course/batch overview. Run `npm install` and then
-`npm start` from that directory after starting the FastAPI backend.
+portfolio landing page at `/`, a protected login flow at `/login`, and the
+management portal at `/dashboard`. It provides a bearer-token HTTP interceptor,
+branch selector, student registration/listing, and course/batch overview. Run
+`npm install` and then `npm start` from that directory after starting the
+FastAPI backend.
 
 ### Public deployment on Render
 
