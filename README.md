@@ -4,6 +4,12 @@ A multi-branch coaching management system designed to streamline academic admini
 
 The project is being developed as a practical full-stack software engineering project using Python, FastAPI, Angular and PostgreSQL. It follows a modular architecture intended to support maintainability, scalability, security and future feature expansion.
 
+## Developer portfolio
+
+View the professional portfolio and project showcase:
+
+**[Open Md Riad's portfolio](https://mdriad-dev.github.io/)**
+
 ## Live client demo
 
 Visit the browser-based demo here:
