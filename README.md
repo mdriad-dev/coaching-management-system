@@ -438,6 +438,17 @@ you want the demo administrator:
 
 Then change the demo password before sharing the public URL.
 
+### Static portfolio link on GitHub Pages
+
+The public portfolio can also be hosted without Render or a running local
+computer. The GitHub Actions workflow publishes it at:
+
+**https://mdriad-dev.github.io/coaching-management-system/**
+
+This GitHub Pages link contains the landing page only. Login, dashboard
+actions, database records, and the FastAPI API require the Render deployment
+above (or another backend host).
+
 The default local configuration uses SQLite so the foundation can be tested without
 external services. Set `DATABASE_URL` to a PostgreSQL URL for development environments
 that have PostgreSQL available. Production schema changes must be managed through
