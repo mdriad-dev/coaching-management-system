@@ -4,6 +4,20 @@ A multi-branch coaching management system designed to streamline academic admini
 
 The project is being developed as a practical full-stack software engineering project using Python, FastAPI, Angular and PostgreSQL. It follows a modular architecture intended to support maintainability, scalability, security and future feature expansion.
 
+## Live client demo
+
+Visit the browser-based demo here:
+
+**[Open Coaching Management System](https://mdriad-dev.github.io/coaching-management-system/)**
+
+Demo credentials:
+
+    Email: demo@coachingcms.app
+    Password: Demo123!
+
+This public demo works without a local backend and is suitable for client
+preview. Demo changes are saved only in each visitor's browser.
+
 ## Project Objectives
 
 - Manage multiple coaching center branches from a unified system.
