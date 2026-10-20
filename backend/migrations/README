@@ -1,0 +1,1 @@
+Run `alembic upgrade head` from the backend directory to apply the schema.

@@ -408,6 +408,18 @@ From the `backend` directory:
     python -m pytest
     uvicorn app.main:app --reload
 
+To initialize a PostgreSQL or local SQLite database with the current schema:
+
+    alembic upgrade head
+
+For a repeatable local demo dataset:
+
+    python -m app.seed
+
+The development seed creates `admin@example.com` with password `Admin123!`,
+one branch, one course, one batch and one demo student. Change or remove this
+account before using a shared or production environment.
+
 Copy `.env.example` to `.env` and adjust values for local development before starting the server.
 
 ## Future Improvements
