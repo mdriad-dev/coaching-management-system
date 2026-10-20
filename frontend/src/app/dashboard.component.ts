@@ -14,7 +14,7 @@ const API = 'http://localhost:8000/api/v1';
   imports: [FormsModule, CurrencyPipe, DatePipe, UpperCasePipe],
   template: `
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar" [class.mobile-open]="menuOpen">
         <div class="brand"><span class="brand-mark">C</span><span>Coaching<span class="brand-muted">CMS</span></span></div>
         <nav class="nav-list" aria-label="Main navigation">
           <a class="nav-item active" href="#overview">▦ <span>Overview</span></a>
@@ -29,7 +29,7 @@ const API = 'http://localhost:8000/api/v1';
 
       <div class="content-area">
         <header class="topbar">
-          <button class="mobile-menu" aria-label="Toggle navigation">☰</button>
+          <button class="mobile-menu" aria-label="Toggle navigation" (click)="menuOpen = !menuOpen">☰</button>
           <div class="topbar-title">Management portal</div>
           <div class="topbar-actions">
             <span class="role-pill">{{ user?.role || 'Authorized user' }}</span>
@@ -82,27 +82,55 @@ const API = 'http://localhost:8000/api/v1';
               }
             </article>
 
-            <article class="panel" id="courses"><div class="panel-heading"><div><p class="eyebrow">ACADEMICS</p><h2>Courses</h2></div><button class="button small-button" (click)="addCourse()">+ Add</button></div>
+            <article class="panel" id="courses"><div class="panel-heading"><div><p class="eyebrow">ACADEMICS</p><h2>Courses</h2></div><button class="button small-button" (click)="openForm('course')">+ Add</button></div>
               @for (course of courses; track course.id) { <div class="list-item"><span class="list-icon violet-bg">▤</span><div><strong>{{ course.name }}</strong><span>{{ course.code }} · {{ course.duration_months }} months</span></div><b>{{ course.monthly_fee | currency }}</b><button class="icon-button danger" (click)="remove('courses', course.id, course.name)">×</button></div> } @empty { <div class="empty-small">No courses available.</div> }
             </article>
-            <article class="panel"><div class="panel-heading"><div><p class="eyebrow">SCHEDULE</p><h2>Upcoming batches</h2></div><button class="button small-button" (click)="addBatch()">+ Add</button></div>
+            <article class="panel"><div class="panel-heading"><div><p class="eyebrow">SCHEDULE</p><h2>Upcoming batches</h2></div><button class="button small-button" (click)="openForm('batch')">+ Add</button></div>
               @for (batch of batches; track batch.id) { <div class="list-item"><span class="list-icon green-bg">▦</span><div><strong>{{ batch.name }}</strong><span>Capacity {{ batch.capacity }} · Starts {{ batch.starts_on | date:'mediumDate' }}</span></div><button class="icon-button danger" (click)="remove('batches', batch.id, batch.name)">×</button></div> } @empty { <div class="empty-small">No batches available.</div> }
             </article>
-            <article class="panel" id="teachers"><div class="panel-heading"><div><p class="eyebrow">FACULTY</p><h2>Teachers</h2></div><button class="button small-button" (click)="addTeacher()">+ Add</button></div>
+            <article class="panel" id="teachers"><div class="panel-heading"><div><p class="eyebrow">FACULTY</p><h2>Teachers</h2></div><button class="button small-button" (click)="openForm('teacher')">+ Add</button></div>
               @for (teacher of teachers; track teacher.id) { <div class="list-item"><span class="list-icon blue-bg">♙</span><div><strong>{{ teacher.full_name }}</strong><span>{{ teacher.subject_specialization }} · {{ teacher.email || 'No email' }}</span></div><button class="icon-button danger" (click)="remove('teachers', teacher.id, teacher.full_name)">×</button></div> } @empty { <div class="empty-small">No teachers registered.</div> }
             </article>
-            <article class="panel" id="attendance"><div class="panel-heading"><div><p class="eyebrow">TIMETABLE</p><h2>Class schedule</h2></div><div class="panel-actions"><button class="button small-button" (click)="addTimetable()">+ Class</button><button class="button secondary small-button" (click)="addAttendance()">+ Attendance</button></div></div>
+            <article class="panel" id="attendance"><div class="panel-heading"><div><p class="eyebrow">TIMETABLE</p><h2>Class schedule</h2></div><div class="panel-actions"><button class="button small-button" (click)="openForm('timetable')">+ Class</button><button class="button secondary small-button" (click)="openForm('attendance')">+ Attendance</button></div></div>
               @for (entry of timetable; track entry.id) { <div class="list-item"><span class="list-icon green-bg">◷</span><div><strong>{{ entry.weekday }} · {{ entry.starts_at }}–{{ entry.ends_at }}</strong><span>Room {{ entry.room }} · Batch #{{ entry.batch_id }}</span></div><button class="icon-button danger" (click)="remove('timetable', entry.id, entry.room)">×</button></div> } @empty { <div class="empty-small">No classes scheduled.</div> }
             </article>
-            <article class="panel" id="payments"><div class="panel-heading"><div><p class="eyebrow">ACADEMIC RESULTS</p><h2>Marks book</h2></div><button class="button small-button" (click)="addMark()">+ Add</button></div>
+            <article class="panel" id="payments"><div class="panel-heading"><div><p class="eyebrow">ACADEMIC RESULTS</p><h2>Marks book</h2></div><button class="button small-button" (click)="openForm('mark')">+ Add</button></div>
               @for (mark of marks; track mark.id) { <div class="list-item"><span class="list-icon violet-bg">✓</span><div><strong>{{ mark.assessment_name }} · Student #{{ mark.student_id }}</strong><span>Batch #{{ mark.batch_id }}</span></div><b>{{ mark.obtained_marks }}/{{ mark.max_marks }}</b><button class="icon-button danger" (click)="remove('marks', mark.id, mark.assessment_name)">×</button></div> } @empty { <div class="empty-small">No marks recorded.</div> }
             </article>
-            <article class="panel"><div class="panel-heading"><div><p class="eyebrow">FINANCE</p><h2>Fee balances</h2></div><div class="panel-actions"><button class="button small-button" (click)="addFeeCharge()">+ Add fee</button><button class="button secondary small-button" (click)="addPayment()">+ Payment</button></div></div>
+            <article class="panel"><div class="panel-heading"><div><p class="eyebrow">FINANCE</p><h2>Fee balances</h2></div><div class="panel-actions"><button class="button small-button" (click)="openForm('fee')">+ Add fee</button><button class="button secondary small-button" (click)="openForm('payment')">+ Payment</button></div></div>
               @for (balance of feeBalances; track balance.student_id) { <div class="list-item"><span class="list-icon amber-bg">৳</span><div><strong>Student #{{ balance.student_id }}</strong><span>Due {{ balance.total_due | currency }} · Paid {{ balance.total_paid | currency }}</span></div><b [class.balance-due]="balance.outstanding > 0">{{ balance.outstanding | currency }}</b></div> } @empty { <div class="empty-small">No fee charges recorded.</div> }
             </article>
           </section>
         </main>
       </div>
+      @if (activeForm) {
+        <div class="modal-backdrop" (click)="closeForm()">
+          <section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+            <div class="panel-heading"><div><p class="eyebrow">NEW RECORD</p><h2>{{ formTitle }}</h2></div><button class="icon-button" (click)="closeForm()" aria-label="Close form">×</button></div>
+            <form class="modal-form" (ngSubmit)="submitForm()">
+              @if (activeForm === 'course') {
+                <label>Course name<input name="name" [(ngModel)]="formData.name" required></label><label>Course code<input name="code" [(ngModel)]="formData.code" required></label><label>Duration (months)<input name="months" type="number" min="1" [(ngModel)]="formData.duration_months" required></label><label>Monthly fee<input name="fee" type="number" min="0" step=".01" [(ngModel)]="formData.monthly_fee" required></label>
+              } @else if (activeForm === 'teacher') {
+                <label>Full name<input name="name" [(ngModel)]="formData.full_name" required></label><label>Subject specialization<input name="subject" [(ngModel)]="formData.subject_specialization" required></label><label>Email<input name="email" type="email" [(ngModel)]="formData.email"></label>
+              } @else if (activeForm === 'batch') {
+                <label>Course ID<input name="course" type="number" [(ngModel)]="formData.course_id" required></label><label>Batch name<input name="name" [(ngModel)]="formData.name" required></label><label>Capacity<input name="capacity" type="number" min="1" [(ngModel)]="formData.capacity" required></label><label>Start date/time<input name="starts" type="datetime-local" [(ngModel)]="formData.starts_on" required></label>
+              } @else if (activeForm === 'timetable') {
+                <label>Batch ID<input name="batch" type="number" [(ngModel)]="formData.batch_id" required></label><label>Teacher ID<input name="teacher" type="number" [(ngModel)]="formData.teacher_id" required></label><label>Weekday<select name="weekday" [(ngModel)]="formData.weekday"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></label><label>Start time<input name="start" type="time" [(ngModel)]="formData.starts_at" required></label><label>End time<input name="end" type="time" [(ngModel)]="formData.ends_at" required></label><label>Room<input name="room" [(ngModel)]="formData.room" required></label>
+              } @else if (activeForm === 'attendance') {
+                <label>Enrollment ID<input name="enrollment" type="number" [(ngModel)]="formData.enrollment_id" required></label><label>Date/time<input name="date" type="datetime-local" [(ngModel)]="formData.attended_on" required></label><label>Status<select name="status" [(ngModel)]="formData.status"><option>present</option><option>absent</option><option>late</option><option>excused</option></select></label>
+              } @else if (activeForm === 'mark') {
+                <label>Student ID<input name="student" type="number" [(ngModel)]="formData.student_id" required></label><label>Batch ID<input name="batch" type="number" [(ngModel)]="formData.batch_id" required></label><label>Assessment<input name="assessment" [(ngModel)]="formData.assessment_name" required></label><label>Maximum marks<input name="max" type="number" min="1" [(ngModel)]="formData.max_marks" required></label><label>Obtained marks<input name="obtained" type="number" min="0" [(ngModel)]="formData.obtained_marks" required></label>
+              } @else if (activeForm === 'fee') {
+                <label>Student ID<input name="student" type="number" [(ngModel)]="formData.student_id" required></label><label>Description<input name="description" [(ngModel)]="formData.description" required></label><label>Amount due<input name="amount" type="number" min="0" step=".01" [(ngModel)]="formData.amount_due" required></label><label>Due date<input name="due" type="datetime-local" [(ngModel)]="formData.due_on" required></label>
+              } @else {
+                <label>Student ID<input name="student" type="number" [(ngModel)]="formData.student_id" required></label><label>Amount<input name="amount" type="number" min="0" step=".01" [(ngModel)]="formData.amount" required></label><label>Payment method<input name="method" [(ngModel)]="formData.payment_method" required></label><label>Reference<input name="reference" [(ngModel)]="formData.transaction_reference"></label>
+              }
+              @if (formError) { <p class="error">{{ formError }}</p> }
+              <div class="modal-actions"><button type="button" class="button secondary" (click)="closeForm()">Cancel</button><button class="button" type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Create record' }}</button></div>
+            </form>
+          </section>
+        </div>
+      }
     </div>
   `,
 })
@@ -126,6 +154,11 @@ export class DashboardComponent {
   error = '';
   searchTerm = '';
   newStudent = { student_code: '', full_name: '', email: '' };
+  menuOpen = false;
+  activeForm: 'course' | 'teacher' | 'batch' | 'timetable' | 'attendance' | 'mark' | 'fee' | 'payment' | null = null;
+  formData: Record<string, string | number> = {};
+  formError = '';
+  get formTitle(): string { return ({ course: 'Add course', teacher: 'Add teacher', batch: 'Add batch', timetable: 'Schedule class', attendance: 'Record attendance', mark: 'Add marks', fee: 'Add fee charge', payment: 'Record payment' } as Record<string, string>)[this.activeForm || ''] || 'Add record'; }
 
   get selectedBranch(): Branch | undefined { return this.branches.find(branch => branch.id === this.selectedBranchId); }
   get filteredStudents(): Student[] {
@@ -154,6 +187,21 @@ export class DashboardComponent {
     this.http.post<Student>(`${API}/branches/${this.selectedBranchId}/students`, this.newStudent).subscribe({
       next: () => { this.newStudent = { student_code: '', full_name: '', email: '' }; this.showStudentForm = false; this.saving = false; this.loadBranch(); },
       error: (response: { error?: { detail?: string } }) => { this.error = response.error?.detail ?? 'Unable to save student.'; this.saving = false; },
+    });
+  }
+  openForm(type: NonNullable<DashboardComponent['activeForm']>): void { this.activeForm = type; this.formError = ''; this.formData = type === 'batch' ? { capacity: 30 } : {}; }
+  closeForm(): void { if (!this.saving) this.activeForm = null; }
+  submitForm(): void {
+    if (!this.activeForm) return;
+    this.saving = true; this.formError = '';
+    const endpoints: Record<string, string> = { course: 'courses', teacher: 'teachers', batch: 'batches', timetable: 'timetable', attendance: 'attendance', mark: 'marks', fee: 'fee-charges', payment: 'payments' };
+    const payload = { ...this.formData };
+    if (typeof payload['starts_on'] === 'string') payload['starts_on'] = new Date(payload['starts_on']).toISOString();
+    if (typeof payload['attended_on'] === 'string') payload['attended_on'] = new Date(payload['attended_on']).toISOString();
+    if (typeof payload['due_on'] === 'string') payload['due_on'] = new Date(payload['due_on']).toISOString();
+    this.http.post(`${API}/branches/${this.selectedBranchId}/${endpoints[this.activeForm]}`, payload).subscribe({
+      next: () => { this.saving = false; this.activeForm = null; this.loadBranch(); },
+      error: response => { this.saving = false; this.formError = response.error?.detail ?? 'The record could not be created.'; },
     });
   }
   private ask(message: string): string | null { return window.prompt(message); }
