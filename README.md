@@ -369,6 +369,8 @@ Phase 1 backend foundations are in place:
 - SQLAlchemy models for organizations, branches, users, branch assignments and students.
 - JWT login and authenticated user profile endpoints.
 - Backend-enforced branch access and branch-scoped student listing/creation.
+- Organization-wide courses with branch-scoped batches.
+- Student enrollments, attendance records and payment records with branch isolation.
 
 Database connectivity, authentication, Angular application structure and domain modules remain pending.
 
@@ -380,6 +382,11 @@ Database connectivity, authentication, Angular application structure and domain 
 - `GET /api/v1/branches`
 - `GET /api/v1/branches/{branch_id}/students`
 - `POST /api/v1/branches/{branch_id}/students`
+- `GET|POST /api/v1/branches/{branch_id}/courses`
+- `GET|POST /api/v1/branches/{branch_id}/batches`
+- `POST /api/v1/branches/{branch_id}/enrollments`
+- `POST /api/v1/branches/{branch_id}/attendance`
+- `POST /api/v1/branches/{branch_id}/payments`
 
 The default local configuration uses SQLite so the foundation can be tested without
 external services. Set `DATABASE_URL` to a PostgreSQL URL for development environments
