@@ -417,6 +417,10 @@ apply the `render.yaml` configuration. Render will provide the public HTTPS
 URL; the app uses same-origin API requests in production, so it does not
 depend on your local computer or `localhost`.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://dashboard.render.com/blueprint/new?repo=https://github.com/mdriad-dev/coaching-management-system)
+
+**[Deploy Coaching Management System on Render](https://dashboard.render.com/blueprint/new?repo=https://github.com/mdriad-dev/coaching-management-system)**
+
 After the first deployment, run the seed command once from a Render shell if
 you want the demo administrator:
 
