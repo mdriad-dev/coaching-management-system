@@ -372,7 +372,7 @@ Phase 1 backend foundations are in place:
 - Organization-wide courses with branch-scoped batches.
 - Student enrollments, attendance records and payment records with branch isolation.
 
-Database connectivity, authentication, Angular application structure and domain modules remain pending.
+Migration automation, advanced administration, reports and additional domain workflows remain pending.
 
 ### Current API slice
 
@@ -387,6 +387,13 @@ Database connectivity, authentication, Angular application structure and domain 
 - `POST /api/v1/branches/{branch_id}/enrollments`
 - `POST /api/v1/branches/{branch_id}/attendance`
 - `POST /api/v1/branches/{branch_id}/payments`
+
+### Frontend
+
+The initial Angular application is available under `frontend/`. It provides a
+protected login flow, bearer-token HTTP interceptor, branch selector, student
+registration/listing, and course/batch overview. Run `npm install` and then
+`npm start` from that directory after starting the FastAPI backend.
 
 The default local configuration uses SQLite so the foundation can be tested without
 external services. Set `DATABASE_URL` to a PostgreSQL URL for development environments
