@@ -6,6 +6,14 @@ def _parse_origins(value: str) -> tuple[str, ...]:
     return tuple(origin.strip() for origin in value.split(",") if origin.strip())
 
 
+def normalize_database_url(database_url: str) -> str:
+    if database_url.startswith("postgres://"):
+        return database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return database_url
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str
@@ -21,8 +29,7 @@ def get_settings() -> Settings:
     database_url = os.getenv(
         "DATABASE_URL", "sqlite:///./coaching_management.db"
     )
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    database_url = normalize_database_url(database_url)
     return Settings(
         app_name=os.getenv("APP_NAME", "Coaching Management System"),
         app_env=os.getenv("APP_ENV", "development"),
