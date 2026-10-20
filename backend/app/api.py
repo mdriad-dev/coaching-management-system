@@ -125,6 +125,16 @@ def create_student(
     return student
 
 
+@router.delete("/branches/{branch_id}/students/{student_id}", status_code=204, tags=["students"])
+def remove_student(branch_id: int, student_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    student = db.get(Student, student_id)
+    if student is None or student.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Student not found")
+    student.is_active = False
+    db.commit()
+
+
 @router.get(
     "/branches/{branch_id}/courses",
     response_model=list[CourseResponse],
@@ -173,6 +183,17 @@ def create_course(
     return course
 
 
+@router.delete("/branches/{branch_id}/courses/{course_id}", status_code=204, tags=["courses"])
+def remove_course(branch_id: int, course_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    branch = db.get(Branch, branch_id)
+    course = db.get(Course, course_id)
+    if branch is None or course is None or course.organization_id != branch.organization_id:
+        raise HTTPException(status_code=404, detail="Course not found")
+    course.is_active = False
+    db.commit()
+
+
 @router.get(
     "/branches/{branch_id}/batches",
     response_model=list[BatchResponse],
@@ -210,6 +231,16 @@ def create_batch(
     db.commit()
     db.refresh(batch)
     return batch
+
+
+@router.delete("/branches/{branch_id}/batches/{batch_id}", status_code=204, tags=["batches"])
+def remove_batch(branch_id: int, batch_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    batch = db.get(Batch, batch_id)
+    if batch is None or batch.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    batch.is_active = False
+    db.commit()
 
 
 @router.post(
@@ -276,6 +307,20 @@ def record_attendance(
     return attendance
 
 
+@router.delete("/branches/{branch_id}/attendance/{attendance_id}", status_code=204, tags=["attendance"])
+def remove_attendance(branch_id: int, attendance_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    attendance = db.get(Attendance, attendance_id)
+    if attendance is None:
+        raise HTTPException(status_code=404, detail="Attendance record not found")
+    enrollment = db.get(Enrollment, attendance.enrollment_id)
+    batch = db.get(Batch, enrollment.batch_id) if enrollment else None
+    if batch is None or batch.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Attendance record not found")
+    db.delete(attendance)
+    db.commit()
+
+
 @router.post(
     "/branches/{branch_id}/payments",
     response_model=PaymentResponse,
@@ -314,6 +359,16 @@ def create_teacher(branch_id: int, payload: TeacherCreate, user: CurrentUser, db
     return teacher
 
 
+@router.delete("/branches/{branch_id}/teachers/{teacher_id}", status_code=204, tags=["teachers"])
+def remove_teacher(branch_id: int, teacher_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    teacher = db.get(Teacher, teacher_id)
+    if teacher is None or teacher.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    teacher.is_active = False
+    db.commit()
+
+
 @router.get("/branches/{branch_id}/timetable", response_model=list[TimetableResponse], tags=["timetable"])
 def list_timetable(branch_id: int, user: CurrentUser, db: Database) -> list[TimetableEntry]:
     require_branch_access(db, user, branch_id)
@@ -336,6 +391,16 @@ def create_timetable(branch_id: int, payload: TimetableCreate, user: CurrentUser
     db.commit()
     db.refresh(entry)
     return entry
+
+
+@router.delete("/branches/{branch_id}/timetable/{entry_id}", status_code=204, tags=["timetable"])
+def remove_timetable(branch_id: int, entry_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    entry = db.get(TimetableEntry, entry_id)
+    if entry is None or entry.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Timetable entry not found")
+    db.delete(entry)
+    db.commit()
 
 
 @router.post("/branches/{branch_id}/marks", response_model=MarkResponse, status_code=201, tags=["marks"])
@@ -362,6 +427,16 @@ def list_marks(branch_id: int, user: CurrentUser, db: Database) -> list[Mark]:
     return list(db.scalars(select(Mark).where(Mark.branch_id == branch_id).order_by(Mark.graded_at.desc())))
 
 
+@router.delete("/branches/{branch_id}/marks/{mark_id}", status_code=204, tags=["marks"])
+def remove_mark(branch_id: int, mark_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    mark = db.get(Mark, mark_id)
+    if mark is None or mark.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Mark not found")
+    db.delete(mark)
+    db.commit()
+
+
 @router.post("/branches/{branch_id}/fee-charges", status_code=201, tags=["fees"])
 def create_fee_charge(branch_id: int, payload: FeeChargeCreate, user: CurrentUser, db: Database) -> dict[str, int]:
     require_branch_access(db, user, branch_id)
@@ -373,6 +448,16 @@ def create_fee_charge(branch_id: int, payload: FeeChargeCreate, user: CurrentUse
     db.commit()
     db.refresh(charge)
     return {"id": charge.id}
+
+
+@router.delete("/branches/{branch_id}/fee-charges/{charge_id}", status_code=204, tags=["fees"])
+def remove_fee_charge(branch_id: int, charge_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    charge = db.get(FeeCharge, charge_id)
+    if charge is None or charge.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Fee charge not found")
+    db.delete(charge)
+    db.commit()
 
 
 @router.get("/branches/{branch_id}/fee-balances", response_model=list[FeeBalanceResponse], tags=["fees"])

@@ -395,6 +395,12 @@ Migration automation, advanced administration, reports and additional domain wor
 - `POST /api/v1/branches/{branch_id}/fee-charges`
 - `GET /api/v1/branches/{branch_id}/fee-balances`
 
+The dashboard includes add controls for students, courses, batches, teachers,
+class timetable entries, attendance, marks, fee charges and payments. Remove
+buttons archive operational records where history should be retained (students,
+teachers, courses and batches) or delete non-financial records. Payment records
+are intentionally retained as an auditable ledger and are not silently deleted.
+
 ### Frontend
 
 The initial Angular application is available under `frontend/`. It provides a
