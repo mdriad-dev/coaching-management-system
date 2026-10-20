@@ -419,9 +419,17 @@ apply the `render.yaml` configuration. Render will provide the public HTTPS
 URL; the app uses same-origin API requests in production, so it does not
 depend on your local computer or `localhost`.
 
+[**Open the live app (available after deployment)**](https://dashboard.render.com/blueprint/new?repo=https://github.com/mdriad-dev/coaching-management-system)
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://dashboard.render.com/blueprint/new?repo=https://github.com/mdriad-dev/coaching-management-system)
 
 **[Deploy Coaching Management System on Render](https://dashboard.render.com/blueprint/new?repo=https://github.com/mdriad-dev/coaching-management-system)**
+
+> **Important:** The links above open Render's deployment screen. They do not
+> become the final application URL until you sign in to Render and create the
+> service. After deployment, copy the generated `https://...onrender.com`
+> address and share that address with visitors. Your computer and local
+> FastAPI/Angular processes can then remain switched off.
 
 After the first deployment, run the seed command once from a Render shell if
 you want the demo administrator:
