@@ -371,6 +371,8 @@ Phase 1 backend foundations are in place:
 - Backend-enforced branch access and branch-scoped student listing/creation.
 - Organization-wide courses with branch-scoped batches.
 - Student enrollments, attendance records and payment records with branch isolation.
+- Teacher directory and branch-scoped timetable scheduling.
+- Marks book validation and fee charge/outstanding-balance reporting.
 
 Migration automation, advanced administration, reports and additional domain workflows remain pending.
 
@@ -387,6 +389,11 @@ Migration automation, advanced administration, reports and additional domain wor
 - `POST /api/v1/branches/{branch_id}/enrollments`
 - `POST /api/v1/branches/{branch_id}/attendance`
 - `POST /api/v1/branches/{branch_id}/payments`
+- `GET|POST /api/v1/branches/{branch_id}/teachers`
+- `GET|POST /api/v1/branches/{branch_id}/timetable`
+- `GET|POST /api/v1/branches/{branch_id}/marks`
+- `POST /api/v1/branches/{branch_id}/fee-charges`
+- `GET /api/v1/branches/{branch_id}/fee-balances`
 
 ### Frontend
 

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from './auth.service';
-import { Batch, Branch, Course, Student, User } from './models';
+import { Batch, Branch, Course, FeeBalance, Mark, Student, Teacher, TimetableEntry, User } from './models';
 
 const API = 'http://localhost:8000/api/v1';
 
@@ -20,8 +20,9 @@ const API = 'http://localhost:8000/api/v1';
           <a class="nav-item active" href="#overview">▦ <span>Overview</span></a>
           <a class="nav-item" href="#students">♙ <span>Students</span><span class="nav-count">{{ students.length }}</span></a>
           <a class="nav-item" href="#courses">▤ <span>Courses & batches</span></a>
-          <a class="nav-item disabled" href="#attendance">◷ <span>Attendance</span><span class="soon">Soon</span></a>
-          <a class="nav-item disabled" href="#payments">৳ <span>Payments</span><span class="soon">Soon</span></a>
+          <a class="nav-item" href="#teachers">♙ <span>Teachers</span><span class="nav-count">{{ teachers.length }}</span></a>
+          <a class="nav-item" href="#attendance">◷ <span>Attendance</span><span class="soon">API</span></a>
+          <a class="nav-item" href="#payments">৳ <span>Fees & results</span></a>
         </nav>
         <div class="sidebar-footer"><div class="security-note">⌁ <span>Branch data is protected<br>by server authorization</span></div></div>
       </aside>
@@ -87,6 +88,18 @@ const API = 'http://localhost:8000/api/v1';
             <article class="panel"><div class="panel-heading"><div><p class="eyebrow">SCHEDULE</p><h2>Upcoming batches</h2></div><span class="panel-link">{{ batches.length }} active</span></div>
               @for (batch of batches; track batch.id) { <div class="list-item"><span class="list-icon green-bg">▦</span><div><strong>{{ batch.name }}</strong><span>Capacity {{ batch.capacity }} · Starts {{ batch.starts_on | date:'mediumDate' }}</span></div><span class="batch-dot"></span></div> } @empty { <div class="empty-small">No batches available.</div> }
             </article>
+            <article class="panel" id="teachers"><div class="panel-heading"><div><p class="eyebrow">FACULTY</p><h2>Teachers</h2></div><span class="panel-link">{{ teachers.length }} active</span></div>
+              @for (teacher of teachers; track teacher.id) { <div class="list-item"><span class="list-icon blue-bg">♙</span><div><strong>{{ teacher.full_name }}</strong><span>{{ teacher.subject_specialization }} · {{ teacher.email || 'No email' }}</span></div><span class="status active">Active</span></div> } @empty { <div class="empty-small">No teachers registered.</div> }
+            </article>
+            <article class="panel" id="attendance"><div class="panel-heading"><div><p class="eyebrow">TIMETABLE</p><h2>Class schedule</h2></div><span class="panel-link">{{ timetable.length }} classes</span></div>
+              @for (entry of timetable; track entry.id) { <div class="list-item"><span class="list-icon green-bg">◷</span><div><strong>{{ entry.weekday }} · {{ entry.starts_at }}–{{ entry.ends_at }}</strong><span>Room {{ entry.room }} · Batch #{{ entry.batch_id }}</span></div></div> } @empty { <div class="empty-small">No classes scheduled.</div> }
+            </article>
+            <article class="panel" id="payments"><div class="panel-heading"><div><p class="eyebrow">ACADEMIC RESULTS</p><h2>Marks book</h2></div><span class="panel-link">{{ marks.length }} results</span></div>
+              @for (mark of marks; track mark.id) { <div class="list-item"><span class="list-icon violet-bg">✓</span><div><strong>{{ mark.assessment_name }} · Student #{{ mark.student_id }}</strong><span>Batch #{{ mark.batch_id }}</span></div><b>{{ mark.obtained_marks }}/{{ mark.max_marks }}</b></div> } @empty { <div class="empty-small">No marks recorded.</div> }
+            </article>
+            <article class="panel"><div class="panel-heading"><div><p class="eyebrow">FINANCE</p><h2>Fee balances</h2></div><span class="panel-link">Ledger</span></div>
+              @for (balance of feeBalances; track balance.student_id) { <div class="list-item"><span class="list-icon amber-bg">৳</span><div><strong>Student #{{ balance.student_id }}</strong><span>Due {{ balance.total_due | currency }} · Paid {{ balance.total_paid | currency }}</span></div><b [class.balance-due]="balance.outstanding > 0">{{ balance.outstanding | currency }}</b></div> } @empty { <div class="empty-small">No fee charges recorded.</div> }
+            </article>
           </section>
         </main>
       </div>
@@ -102,6 +115,10 @@ export class DashboardComponent {
   students: Student[] = [];
   courses: Course[] = [];
   batches: Batch[] = [];
+  teachers: Teacher[] = [];
+  timetable: TimetableEntry[] = [];
+  marks: Mark[] = [];
+  feeBalances: FeeBalance[] = [];
   selectedBranchId = 0;
   showStudentForm = false;
   loading = true;
@@ -129,7 +146,7 @@ export class DashboardComponent {
     if (!this.selectedBranchId) { this.loading = false; return; }
     this.loading = true; this.error = '';
     const prefix = `${API}/branches/${this.selectedBranchId}`;
-    forkJoin({ students: this.http.get<Student[]>(`${prefix}/students`), courses: this.http.get<Course[]>(`${prefix}/courses`), batches: this.http.get<Batch[]>(`${prefix}/batches`) })
+    forkJoin({ students: this.http.get<Student[]>(`${prefix}/students`), courses: this.http.get<Course[]>(`${prefix}/courses`), batches: this.http.get<Batch[]>(`${prefix}/batches`), teachers: this.http.get<Teacher[]>(`${prefix}/teachers`), timetable: this.http.get<TimetableEntry[]>(`${prefix}/timetable`), marks: this.http.get<Mark[]>(`${prefix}/marks`), feeBalances: this.http.get<FeeBalance[]>(`${prefix}/fee-balances`) })
       .subscribe({ next: result => { Object.assign(this, result); this.loading = false; }, error: () => { this.error = 'Unable to load branch data.'; this.loading = false; } });
   }
   addStudent(): void {

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from enum import StrEnum
 
 from decimal import Decimal
@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Numeric,
     String,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -155,3 +156,53 @@ class Payment(Base):
     paid_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class Teacher(Base):
+    __tablename__ = "teachers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    branch_id: Mapped[int] = mapped_column(ForeignKey("branches.id"), index=True)
+    full_name: Mapped[str] = mapped_column(String(200))
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    subject_specialization: Mapped[str] = mapped_column(String(120))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class TimetableEntry(Base):
+    __tablename__ = "timetable_entries"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    branch_id: Mapped[int] = mapped_column(ForeignKey("branches.id"), index=True)
+    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"))
+    teacher_id: Mapped[int] = mapped_column(ForeignKey("teachers.id"))
+    weekday: Mapped[str] = mapped_column(String(12))
+    starts_at: Mapped[time] = mapped_column(Time())
+    ends_at: Mapped[time] = mapped_column(Time())
+    room: Mapped[str] = mapped_column(String(80))
+
+
+class Mark(Base):
+    __tablename__ = "marks"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    branch_id: Mapped[int] = mapped_column(ForeignKey("branches.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"))
+    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"))
+    assessment_name: Mapped[str] = mapped_column(String(120))
+    max_marks: Mapped[Decimal] = mapped_column(Numeric(7, 2))
+    obtained_marks: Mapped[Decimal] = mapped_column(Numeric(7, 2))
+    graded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class FeeCharge(Base):
+    __tablename__ = "fee_charges"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    branch_id: Mapped[int] = mapped_column(ForeignKey("branches.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"))
+    description: Mapped[str] = mapped_column(String(160))
+    amount_due: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    due_on: Mapped[datetime] = mapped_column(DateTime(timezone=True))

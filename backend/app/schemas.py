@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -117,3 +117,60 @@ class PaymentResponse(PaymentCreate):
 
     id: int
     paid_at: datetime
+
+
+class TeacherCreate(BaseModel):
+    full_name: str = Field(min_length=1, max_length=200)
+    email: EmailStr | None = None
+    subject_specialization: str = Field(min_length=1, max_length=120)
+
+
+class TeacherResponse(TeacherCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    branch_id: int
+    is_active: bool
+
+
+class TimetableCreate(BaseModel):
+    batch_id: int = Field(gt=0)
+    teacher_id: int = Field(gt=0)
+    weekday: str = Field(min_length=3, max_length=12)
+    starts_at: time
+    ends_at: time
+    room: str = Field(min_length=1, max_length=80)
+
+
+class TimetableResponse(TimetableCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    branch_id: int
+
+
+class MarkCreate(BaseModel):
+    student_id: int = Field(gt=0)
+    batch_id: int = Field(gt=0)
+    assessment_name: str = Field(min_length=1, max_length=120)
+    max_marks: Decimal = Field(gt=0, decimal_places=2, max_digits=7)
+    obtained_marks: Decimal = Field(ge=0, decimal_places=2, max_digits=7)
+
+
+class MarkResponse(MarkCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    branch_id: int
+    graded_at: datetime
+
+
+class FeeChargeCreate(BaseModel):
+    student_id: int = Field(gt=0)
+    description: str = Field(min_length=1, max_length=160)
+    amount_due: Decimal = Field(gt=0, decimal_places=2, max_digits=12)
+    due_on: datetime
+
+
+class FeeBalanceResponse(BaseModel):
+    student_id: int
+    total_due: Decimal
+    total_paid: Decimal
+    outstanding: Decimal

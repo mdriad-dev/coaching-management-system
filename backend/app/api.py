@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from .dependencies import CurrentUser, Database, require_branch_access
 from .models import (
@@ -9,6 +9,10 @@ from .models import (
     Course,
     Enrollment,
     Payment,
+    FeeCharge,
+    Mark,
+    Teacher,
+    TimetableEntry,
     Student,
     User,
 )
@@ -25,9 +29,17 @@ from .schemas import (
     LoginRequest,
     PaymentCreate,
     PaymentResponse,
+    FeeBalanceResponse,
+    FeeChargeCreate,
+    MarkCreate,
+    MarkResponse,
     StudentCreate,
     StudentResponse,
     TokenResponse,
+    TeacherCreate,
+    TeacherResponse,
+    TimetableCreate,
+    TimetableResponse,
     UserResponse,
 )
 from .security import create_access_token, verify_password
@@ -282,3 +294,94 @@ def record_payment(
     db.commit()
     db.refresh(payment)
     return payment
+
+
+@router.get("/branches/{branch_id}/teachers", response_model=list[TeacherResponse], tags=["teachers"])
+def list_teachers(branch_id: int, user: CurrentUser, db: Database) -> list[Teacher]:
+    require_branch_access(db, user, branch_id)
+    return list(db.scalars(select(Teacher).where(Teacher.branch_id == branch_id, Teacher.is_active.is_(True)).order_by(Teacher.full_name)))
+
+
+@router.post("/branches/{branch_id}/teachers", response_model=TeacherResponse, status_code=201, tags=["teachers"])
+def create_teacher(branch_id: int, payload: TeacherCreate, user: CurrentUser, db: Database) -> Teacher:
+    require_branch_access(db, user, branch_id)
+    if db.get(Branch, branch_id) is None:
+        raise HTTPException(status_code=404, detail="Branch not found")
+    teacher = Teacher(branch_id=branch_id, **payload.model_dump())
+    db.add(teacher)
+    db.commit()
+    db.refresh(teacher)
+    return teacher
+
+
+@router.get("/branches/{branch_id}/timetable", response_model=list[TimetableResponse], tags=["timetable"])
+def list_timetable(branch_id: int, user: CurrentUser, db: Database) -> list[TimetableEntry]:
+    require_branch_access(db, user, branch_id)
+    return list(db.scalars(select(TimetableEntry).where(TimetableEntry.branch_id == branch_id).order_by(TimetableEntry.weekday, TimetableEntry.starts_at)))
+
+
+@router.post("/branches/{branch_id}/timetable", response_model=TimetableResponse, status_code=201, tags=["timetable"])
+def create_timetable(branch_id: int, payload: TimetableCreate, user: CurrentUser, db: Database) -> TimetableEntry:
+    require_branch_access(db, user, branch_id)
+    batch = db.get(Batch, payload.batch_id)
+    teacher = db.get(Teacher, payload.teacher_id)
+    if batch is None or batch.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    if teacher is None or teacher.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    if payload.ends_at <= payload.starts_at:
+        raise HTTPException(status_code=422, detail="End time must be after start time")
+    entry = TimetableEntry(branch_id=branch_id, **payload.model_dump())
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+@router.post("/branches/{branch_id}/marks", response_model=MarkResponse, status_code=201, tags=["marks"])
+def record_mark(branch_id: int, payload: MarkCreate, user: CurrentUser, db: Database) -> Mark:
+    require_branch_access(db, user, branch_id)
+    student = db.get(Student, payload.student_id)
+    batch = db.get(Batch, payload.batch_id)
+    if student is None or student.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if batch is None or batch.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    if payload.obtained_marks > payload.max_marks:
+        raise HTTPException(status_code=422, detail="Obtained marks cannot exceed maximum marks")
+    mark = Mark(branch_id=branch_id, **payload.model_dump())
+    db.add(mark)
+    db.commit()
+    db.refresh(mark)
+    return mark
+
+
+@router.get("/branches/{branch_id}/marks", response_model=list[MarkResponse], tags=["marks"])
+def list_marks(branch_id: int, user: CurrentUser, db: Database) -> list[Mark]:
+    require_branch_access(db, user, branch_id)
+    return list(db.scalars(select(Mark).where(Mark.branch_id == branch_id).order_by(Mark.graded_at.desc())))
+
+
+@router.post("/branches/{branch_id}/fee-charges", status_code=201, tags=["fees"])
+def create_fee_charge(branch_id: int, payload: FeeChargeCreate, user: CurrentUser, db: Database) -> dict[str, int]:
+    require_branch_access(db, user, branch_id)
+    student = db.get(Student, payload.student_id)
+    if student is None or student.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Student not found")
+    charge = FeeCharge(branch_id=branch_id, **payload.model_dump())
+    db.add(charge)
+    db.commit()
+    db.refresh(charge)
+    return {"id": charge.id}
+
+
+@router.get("/branches/{branch_id}/fee-balances", response_model=list[FeeBalanceResponse], tags=["fees"])
+def fee_balances(branch_id: int, user: CurrentUser, db: Database) -> list[FeeBalanceResponse]:
+    require_branch_access(db, user, branch_id)
+    students = list(db.scalars(select(Student).where(Student.branch_id == branch_id, Student.is_active.is_(True))))
+    balances = []
+    for student in students:
+        due = db.scalar(select(func.coalesce(func.sum(FeeCharge.amount_due), 0)).where(FeeCharge.student_id == student.id))
+        paid = db.scalar(select(func.coalesce(func.sum(Payment.amount), 0)).where(Payment.student_id == student.id))
+        balances.append(FeeBalanceResponse(student_id=student.id, total_due=due, total_paid=paid, outstanding=max(due - paid, 0)))
+    return balances
