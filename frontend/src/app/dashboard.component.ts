@@ -7,6 +7,8 @@ import { forkJoin } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Batch, Branch, Course, FeeBalance, Mark, Student, Teacher, TimetableEntry, User } from './models';
 import { API } from './api';
+import { isBrowserDemo } from './api';
+import { DemoService } from './demo.service';
 
 @Component({
   standalone: true,
@@ -137,6 +139,7 @@ export class DashboardComponent {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly demo = inject(DemoService);
   user: User | null = null;
   branches: Branch[] = [];
   students: Student[] = [];
@@ -169,6 +172,12 @@ export class DashboardComponent {
 
   constructor() {
     this.auth.me().subscribe({ next: user => this.user = user, error: () => this.logout() });
+    if (isBrowserDemo) {
+      this.branches = this.demo.branches();
+      this.selectedBranchId = this.branches[0]?.id ?? 0;
+      this.loadBranch();
+      return;
+    }
     this.http.get<Branch[]>(`${API}/branches`).subscribe({
       next: branches => { this.branches = branches; this.selectedBranchId = branches[0]?.id ?? 0; this.loadBranch(); },
       error: () => { this.error = 'Unable to load branches. Check that the backend is running.'; this.loading = false; },
@@ -177,12 +186,23 @@ export class DashboardComponent {
   loadBranch(): void {
     if (!this.selectedBranchId) { this.loading = false; return; }
     this.loading = true; this.error = '';
+    if (isBrowserDemo) {
+      Object.assign(this, this.demo.snapshot(this.selectedBranchId));
+      this.loading = false;
+      return;
+    }
     const prefix = `${API}/branches/${this.selectedBranchId}`;
     forkJoin({ students: this.http.get<Student[]>(`${prefix}/students`), courses: this.http.get<Course[]>(`${prefix}/courses`), batches: this.http.get<Batch[]>(`${prefix}/batches`), teachers: this.http.get<Teacher[]>(`${prefix}/teachers`), timetable: this.http.get<TimetableEntry[]>(`${prefix}/timetable`), marks: this.http.get<Mark[]>(`${prefix}/marks`), feeBalances: this.http.get<FeeBalance[]>(`${prefix}/fee-balances`) })
       .subscribe({ next: result => { Object.assign(this, result); this.loading = false; }, error: () => { this.error = 'Unable to load branch data.'; this.loading = false; } });
   }
   addStudent(): void {
     this.saving = true; this.error = '';
+    if (isBrowserDemo) {
+      this.demo.create('students', this.selectedBranchId, this.newStudent);
+      this.newStudent = { student_code: '', full_name: '', email: '' };
+      this.showStudentForm = false; this.saving = false; this.loadBranch();
+      return;
+    }
     this.http.post<Student>(`${API}/branches/${this.selectedBranchId}/students`, this.newStudent).subscribe({
       next: () => { this.newStudent = { student_code: '', full_name: '', email: '' }; this.showStudentForm = false; this.saving = false; this.loadBranch(); },
       error: (response: { error?: { detail?: string } }) => { this.error = response.error?.detail ?? 'Unable to save student.'; this.saving = false; },
@@ -198,6 +218,11 @@ export class DashboardComponent {
     if (typeof payload['starts_on'] === 'string') payload['starts_on'] = new Date(payload['starts_on']).toISOString();
     if (typeof payload['attended_on'] === 'string') payload['attended_on'] = new Date(payload['attended_on']).toISOString();
     if (typeof payload['due_on'] === 'string') payload['due_on'] = new Date(payload['due_on']).toISOString();
+    if (isBrowserDemo) {
+      this.demo.create(endpoints[this.activeForm], this.selectedBranchId, payload);
+      this.saving = false; this.activeForm = null; this.loadBranch();
+      return;
+    }
     this.http.post(`${API}/branches/${this.selectedBranchId}/${endpoints[this.activeForm]}`, payload).subscribe({
       next: () => { this.saving = false; this.activeForm = null; this.loadBranch(); },
       error: response => { this.saving = false; this.formError = response.error?.detail ?? 'The record could not be created.'; },
@@ -246,6 +271,11 @@ export class DashboardComponent {
   }
   remove(resource: string, id: number, label: string): void {
     if (!window.confirm(`Remove "${label}"? This action cannot be undone from the dashboard.`)) return;
+    if (isBrowserDemo) {
+      this.demo.remove(resource, id);
+      this.loadBranch();
+      return;
+    }
     this.http.delete(`${API}/branches/${this.selectedBranchId}/${resource}/${id}`).subscribe({ next: () => this.loadBranch(), error: response => this.showApiError(response) });
   }
   private showApiError(response: { error?: { detail?: string } }): void { this.error = response.error?.detail ?? 'The operation could not be completed.'; }
