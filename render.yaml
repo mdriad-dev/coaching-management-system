@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: coaching-management-system
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: coaching-management-db
+          property: connectionString
+databases:
+  - name: coaching-management-db
+    plan: free

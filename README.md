@@ -408,6 +408,22 @@ protected login flow, bearer-token HTTP interceptor, branch selector, student
 registration/listing, and course/batch overview. Run `npm install` and then
 `npm start` from that directory after starting the FastAPI backend.
 
+### Public deployment on Render
+
+The repository includes a `Dockerfile` and `render.yaml` for deploying the
+Angular frontend, FastAPI backend, and PostgreSQL database as one Render
+service. In Render, choose **New > Blueprint**, connect this repository, and
+apply the `render.yaml` configuration. Render will provide the public HTTPS
+URL; the app uses same-origin API requests in production, so it does not
+depend on your local computer or `localhost`.
+
+After the first deployment, run the seed command once from a Render shell if
+you want the demo administrator:
+
+    python -m app.seed
+
+Then change the demo password before sharing the public URL.
+
 The default local configuration uses SQLite so the foundation can be tested without
 external services. Set `DATABASE_URL` to a PostgreSQL URL for development environments
 that have PostgreSQL available. Production schema changes must be managed through

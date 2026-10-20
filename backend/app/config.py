@@ -18,6 +18,11 @@ class Settings:
 
 
 def get_settings() -> Settings:
+    database_url = os.getenv(
+        "DATABASE_URL", "sqlite:///./coaching_management.db"
+    )
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
     return Settings(
         app_name=os.getenv("APP_NAME", "Coaching Management System"),
         app_env=os.getenv("APP_ENV", "development"),
@@ -25,9 +30,7 @@ def get_settings() -> Settings:
         cors_origins=_parse_origins(
             os.getenv("CORS_ORIGINS", "http://localhost:4200")
         ),
-        database_url=os.getenv(
-            "DATABASE_URL", "sqlite:///./coaching_management.db"
-        ),
+        database_url=database_url,
         secret_key=os.getenv(
             "SECRET_KEY", "development-only-change-this-secret"
         ),

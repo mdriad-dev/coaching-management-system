@@ -6,8 +6,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Batch, Branch, Course, FeeBalance, Mark, Student, Teacher, TimetableEntry, User } from './models';
-
-const API = 'http://localhost:8000/api/v1';
+import { API } from './api';
 
 @Component({
   standalone: true,

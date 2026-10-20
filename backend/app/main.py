@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 
 from .config import get_settings
 from .api import router
@@ -15,11 +17,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.include_router(router)
+
+frontend_index = Path(__file__).resolve().parent.parent / "static" / "index.html"
 
 
 @app.on_event("startup")
@@ -28,8 +32,10 @@ def create_development_tables() -> None:
         Base.metadata.create_all(bind=engine)
 
 
-@app.get("/", tags=["system"])
-def home() -> dict[str, str]:
+@app.get("/", response_model=None, tags=["system"])
+def home() -> FileResponse | dict[str, str]:
+    if frontend_index.exists():
+        return FileResponse(frontend_index)
     return {"message": f"{settings.app_name} API is running"}
 
 
@@ -51,3 +57,10 @@ def get_students() -> dict[str, list[dict[str, int | str]]]:
             {"id": 3, "name": "Sakib"},
         ]
     }
+
+
+@app.get("/{path:path}", include_in_schema=False)
+def frontend_fallback(path: str) -> FileResponse:
+    if frontend_index.exists():
+        return FileResponse(frontend_index)
+    raise HTTPException(status_code=404, detail="Frontend is not available")

@@ -2,8 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { TokenResponse, User } from './models';
-
-const API = 'http://localhost:8000/api/v1';
+import { API } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
