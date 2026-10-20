@@ -18,6 +18,16 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [],
             "styles": ["src/styles.css"]
+          },
+          "configurations": {
+            "development": {
+              "optimization": false,
+              "sourceMap": true
+            },
+            "production": {
+              "optimization": true,
+              "sourceMap": false
+            }
           }
         },
         "serve": {
