@@ -5,8 +5,9 @@ import { DashboardComponent } from './dashboard.component';
 import { LandingComponent } from './landing.component';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: '', component: LandingComponent },
+  { path: '', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'login', component: LoginComponent },
+  { path: 'landing', component: LandingComponent },
   { path: '**', redirectTo: '' },
 ];

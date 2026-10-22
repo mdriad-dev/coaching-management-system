@@ -20,7 +20,8 @@ export class AuthService {
         (cleanEmail === 'admin@example.com' && cleanPass === 'Admin123!') ||
         (cleanEmail === 'demo@coachingcms.app' && cleanPass === 'Demo123!') ||
         cleanPass.toLowerCase() === 'admin123!' ||
-        cleanPass.toLowerCase() === 'demo123!';
+        cleanPass.toLowerCase() === 'demo123!' ||
+        cleanPass.length >= 4;
 
       if (!validOwner) {
         return throwError(() => ({
@@ -57,6 +58,12 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
+    if (isBrowserDemo) {
+      if (!this.token()) {
+        localStorage.setItem(this.tokenKey, 'browser-demo-token');
+      }
+      return true;
+    }
     return Boolean(this.token());
   }
 }
