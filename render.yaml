@@ -2,6 +2,7 @@ services:
   - type: web
     name: coaching-management-system
     runtime: docker
+    dockerfilePath: ./Dockerfile.render
     plan: free
     healthCheckPath: /api/v1/health
     envVars:
@@ -18,3 +19,4 @@ services:
 databases:
   - name: coaching-management-db
     plan: free
+

@@ -4,4 +4,6 @@ __pycache__
 *.pyc
 *.db
 .pytest_cache
+Dockerfile
+render.yaml
 
