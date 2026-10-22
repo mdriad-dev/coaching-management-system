@@ -9,9 +9,11 @@ import { DemoService } from './demo.service';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tokenKey = 'cms_access_token';
+  private readonly loggedOutKey = 'cms_logged_out';
   private readonly demo = inject(DemoService);
 
   login(email: string, password: string): Observable<TokenResponse> {
+    localStorage.removeItem(this.loggedOutKey);
     if (isBrowserDemo) {
       const cleanEmail = (email || '').trim().toLowerCase();
       const cleanPass = (password || '').trim();
@@ -55,9 +57,13 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);
+    localStorage.setItem(this.loggedOutKey, 'true');
   }
 
   isAuthenticated(): boolean {
+    if (localStorage.getItem(this.loggedOutKey) === 'true') {
+      return false;
+    }
     if (isBrowserDemo) {
       if (!this.token()) {
         localStorage.setItem(this.tokenKey, 'browser-demo-token');

@@ -16,7 +16,7 @@
             "index": "src/index.html",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "assets": [],
+            "assets": ["src/manifest.webmanifest", "src/icon-192.png", "src/icon-512.png", "src/CoachingCMS.apk", {"glob": "**/*", "input": "src/.well-known", "output": "/.well-known"}],
             "styles": ["src/styles.css"]
           },
           "configurations": {
@@ -42,3 +42,5 @@
     }
   }
 }
+
+

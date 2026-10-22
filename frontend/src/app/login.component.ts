@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
   error = '';
 
   ngOnInit(): void {
-    if (isBrowserDemo) {
+    if (this.auth.isAuthenticated()) {
       this.router.navigateByUrl('/');
     }
   }

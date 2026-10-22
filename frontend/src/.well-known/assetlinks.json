@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.coachingmanagementsystem",
+        "sha256_cert_fingerprints": ["68:2C:13:BE:6C:A1:22:0E:2B:3C:F9:E6:82:63:D3:F4:EC:30:0B:9A:62:20:36:A9:0E:DB:4A:74:E0:78:76:54"]
+      }
+    }]

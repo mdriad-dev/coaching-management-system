@@ -85,6 +85,10 @@ type DashboardTab = 'overview' | 'students' | 'finances' | 'academics' | 'facult
             </div>
           </div>
           <div class="topbar-actions">
+            <!-- Mobile App APK Download -->
+            <a href="CoachingCMS.apk" download="CoachingCMS.apk" class="apk-download-btn" title="Download Android App APK">
+              📱 Install App (APK)
+            </a>
             <!-- Light / Dark Theme Switcher -->
             <button class="theme-toggle-btn" (click)="toggleTheme()" [title]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
               {{ isDarkMode ? '☀️ Light' : '🌙 Dark' }}
