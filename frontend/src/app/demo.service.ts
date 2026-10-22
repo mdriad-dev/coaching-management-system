@@ -32,12 +32,12 @@ type DemoState = {
 @Injectable({ providedIn: 'root' })
 export class DemoService {
   // Versioned key to guarantee the fresh 20-record dataset loads in the user's browser
-  private readonly key = 'cms_browser_demo_v2';
+  private readonly key = 'cms_browser_demo_v3';
 
   private readonly seed: DemoState = {
     user: {
       id: 1,
-      email: 'demo@coachingcms.app',
+      email: 'admin@example.com',
       full_name: 'Md. Riad (Coaching Owner)',
       role: 'super_administrator',
     },

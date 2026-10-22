@@ -13,15 +13,50 @@ export class AuthService {
 
   login(email: string, password: string): Observable<TokenResponse> {
     if (isBrowserDemo) {
-      if (email !== 'demo@coachingcms.app' || password !== 'Demo123!') return throwError(() => new Error('Use demo@coachingcms.app and Demo123!'));
-      return new Observable(subscriber => { localStorage.setItem(this.tokenKey, 'browser-demo-token'); subscriber.next({ access_token: 'browser-demo-token', token_type: 'bearer' }); subscriber.complete(); });
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const cleanPass = (password || '').trim();
+
+      const validOwner =
+        (cleanEmail === 'admin@example.com' && cleanPass === 'Admin123!') ||
+        (cleanEmail === 'demo@coachingcms.app' && cleanPass === 'Demo123!') ||
+        cleanPass.toLowerCase() === 'admin123!' ||
+        cleanPass.toLowerCase() === 'demo123!';
+
+      if (!validOwner) {
+        return throwError(() => ({
+          error: { detail: 'Incorrect credentials. Please use admin@example.com and Admin123!' },
+        }));
+      }
+
+      return new Observable((subscriber) => {
+        localStorage.setItem(this.tokenKey, 'browser-demo-token');
+        subscriber.next({ access_token: 'browser-demo-token', token_type: 'bearer' });
+        subscriber.complete();
+      });
     }
     return this.http.post<TokenResponse>(`${API}/auth/login`, { email, password }).pipe(
       tap((result) => localStorage.setItem(this.tokenKey, result.access_token)),
     );
   }
-  me(): Observable<User> { return isBrowserDemo ? new Observable(subscriber => { subscriber.next(this.demo.user()); subscriber.complete(); }) : this.http.get<User>(`${API}/auth/me`); }
-  token(): string | null { return localStorage.getItem(this.tokenKey); }
-  logout(): void { localStorage.removeItem(this.tokenKey); }
-  isAuthenticated(): boolean { return Boolean(this.token()); }
+
+  me(): Observable<User> {
+    return isBrowserDemo
+      ? new Observable((subscriber) => {
+          subscriber.next(this.demo.user());
+          subscriber.complete();
+        })
+      : this.http.get<User>(`${API}/auth/me`);
+  }
+
+  token(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.tokenKey);
+  }
+
+  isAuthenticated(): boolean {
+    return Boolean(this.token());
+  }
 }
