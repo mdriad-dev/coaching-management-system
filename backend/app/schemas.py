@@ -25,6 +25,11 @@ class UserResponse(BaseModel):
     role: UserRole
 
 
+class BranchCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=30)
+    name: str = Field(min_length=1, max_length=200)
+
+
 class BranchResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

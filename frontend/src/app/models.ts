@@ -8,3 +8,6 @@ export interface Teacher { id: number; branch_id: number; full_name: string; ema
 export interface TimetableEntry { id: number; branch_id: number; batch_id: number; teacher_id: number; weekday: string; starts_at: string; ends_at: string; room: string; }
 export interface Mark { id: number; branch_id: number; student_id: number; batch_id: number; assessment_name: string; max_marks: number; obtained_marks: number; graded_at: string; }
 export interface FeeBalance { student_id: number; total_due: number; total_paid: number; outstanding: number; }
+export interface Enrollment { id: number; student_id: number; batch_id: number; enrolled_on: string; is_active: boolean; }
+export interface Payment { id: number; student_id: number; amount: number; payment_method: string; transaction_reference?: string; paid_at: string; }
+export interface AttendanceRecord { id: number; enrollment_id: number; attended_on: string; status: string; }

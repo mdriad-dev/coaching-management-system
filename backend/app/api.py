@@ -15,12 +15,14 @@ from .models import (
     TimetableEntry,
     Student,
     User,
+    UserBranch,
 )
 from .schemas import (
     AttendanceCreate,
     AttendanceResponse,
     BatchCreate,
     BatchResponse,
+    BranchCreate,
     BranchResponse,
     CourseCreate,
     CourseResponse,
@@ -76,6 +78,45 @@ def list_branches(user: CurrentUser, db: Database) -> list[Branch]:
             .where(Branch.is_active.is_(True), User.id == user.id)
         )
     )
+
+
+@router.post(
+    "/branches",
+    response_model=BranchResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["branches"],
+)
+def create_branch(payload: BranchCreate, user: CurrentUser, db: Database) -> Branch:
+    if user.role not in {"super_administrator", "organization_administrator"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can create branches",
+        )
+    user_branch = db.scalar(select(UserBranch).where(UserBranch.user_id == user.id))
+    org_id = user_branch.branch.organization_id if user_branch and user_branch.branch else 1
+    duplicate = db.scalar(
+        select(Branch).where(
+            Branch.organization_id == org_id,
+            Branch.code == payload.code,
+        )
+    )
+    if duplicate is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Branch code already exists",
+        )
+    branch = Branch(
+        organization_id=org_id,
+        code=payload.code,
+        name=payload.name,
+        is_active=True,
+    )
+    db.add(branch)
+    db.flush()
+    db.add(UserBranch(user_id=user.id, branch_id=branch.id))
+    db.commit()
+    db.refresh(branch)
+    return branch
 
 
 @router.get(
@@ -243,6 +284,22 @@ def remove_batch(branch_id: int, batch_id: int, user: CurrentUser, db: Database)
     db.commit()
 
 
+@router.get(
+    "/branches/{branch_id}/enrollments",
+    response_model=list[EnrollmentResponse],
+    tags=["enrollments"],
+)
+def list_enrollments(branch_id: int, user: CurrentUser, db: Database) -> list[Enrollment]:
+    require_branch_access(db, user, branch_id)
+    return list(
+        db.scalars(
+            select(Enrollment)
+            .join(Batch, Enrollment.batch_id == Batch.id)
+            .where(Batch.branch_id == branch_id, Enrollment.is_active.is_(True))
+        )
+    )
+
+
 @router.post(
     "/branches/{branch_id}/enrollments",
     response_model=EnrollmentResponse,
@@ -273,6 +330,37 @@ def create_enrollment(
     db.commit()
     db.refresh(enrollment)
     return enrollment
+
+
+@router.delete("/branches/{branch_id}/enrollments/{enrollment_id}", status_code=204, tags=["enrollments"])
+def remove_enrollment(branch_id: int, enrollment_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    enrollment = db.get(Enrollment, enrollment_id)
+    if enrollment is None:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    batch = db.get(Batch, enrollment.batch_id)
+    if batch is None or batch.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    enrollment.is_active = False
+    db.commit()
+
+
+@router.get(
+    "/branches/{branch_id}/attendance",
+    response_model=list[AttendanceResponse],
+    tags=["attendance"],
+)
+def list_attendance(branch_id: int, user: CurrentUser, db: Database) -> list[Attendance]:
+    require_branch_access(db, user, branch_id)
+    return list(
+        db.scalars(
+            select(Attendance)
+            .join(Enrollment, Attendance.enrollment_id == Enrollment.id)
+            .join(Batch, Enrollment.batch_id == Batch.id)
+            .where(Batch.branch_id == branch_id)
+            .order_by(Attendance.attended_on.desc())
+        )
+    )
 
 
 @router.post(
@@ -321,6 +409,23 @@ def remove_attendance(branch_id: int, attendance_id: int, user: CurrentUser, db:
     db.commit()
 
 
+@router.get(
+    "/branches/{branch_id}/payments",
+    response_model=list[PaymentResponse],
+    tags=["payments"],
+)
+def list_payments(branch_id: int, user: CurrentUser, db: Database) -> list[Payment]:
+    require_branch_access(db, user, branch_id)
+    return list(
+        db.scalars(
+            select(Payment)
+            .join(Student, Payment.student_id == Student.id)
+            .where(Student.branch_id == branch_id)
+            .order_by(Payment.paid_at.desc())
+        )
+    )
+
+
 @router.post(
     "/branches/{branch_id}/payments",
     response_model=PaymentResponse,
@@ -339,6 +444,19 @@ def record_payment(
     db.commit()
     db.refresh(payment)
     return payment
+
+
+@router.delete("/branches/{branch_id}/payments/{payment_id}", status_code=204, tags=["payments"])
+def remove_payment(branch_id: int, payment_id: int, user: CurrentUser, db: Database) -> None:
+    require_branch_access(db, user, branch_id)
+    payment = db.get(Payment, payment_id)
+    if payment is None:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+    student = db.get(Student, payment.student_id)
+    if student is None or student.branch_id != branch_id:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+    db.delete(payment)
+    db.commit()
 
 
 @router.get("/branches/{branch_id}/teachers", response_model=list[TeacherResponse], tags=["teachers"])
