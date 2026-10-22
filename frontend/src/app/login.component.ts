@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { RouterLink } from '@angular/router';
+import { isBrowserDemo } from './api';
 
 @Component({
   standalone: true,
@@ -39,18 +40,6 @@ import { RouterLink } from '@angular/router';
           <h1>Sign in to Command Center</h1>
           <p class="muted">Access branch operations, fee collections, and student records.</p>
 
-          <!-- Convenient Demo Login Banner -->
-          <div class="demo-login-box">
-            <div class="demo-tag">⚡ OWNER LOGIN CREDENTIALS</div>
-            <div class="demo-creds">
-              <div>Email: <b>admin&#64;example.com</b></div>
-              <div>Password: <b>Admin123!</b></div>
-            </div>
-            <button type="button" class="autofill-btn" (click)="autofill()">
-              Click to Autofill
-            </button>
-          </div>
-
           <form (ngSubmit)="submit()">
             <label class="field">
               Email address
@@ -68,13 +57,13 @@ import { RouterLink } from '@angular/router';
             </button>
           </form>
           <p class="login-note">Protected by coaching owner branch authorization.</p>
-          <a class="back-home" routerLink="/">← Back to project overview</a>
+          <a class="back-home" routerLink="/">← Back to dashboard</a>
         </div>
       </section>
     </main>
   `,
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -83,17 +72,17 @@ export class LoginComponent {
   loading = false;
   error = '';
 
-  autofill(): void {
-    this.email = 'admin@example.com';
-    this.password = 'Admin123!';
-    this.error = '';
+  ngOnInit(): void {
+    if (isBrowserDemo) {
+      this.router.navigateByUrl('/');
+    }
   }
 
   submit(): void {
     this.loading = true;
     this.error = '';
     this.auth.login(this.email, this.password).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
+      next: () => this.router.navigateByUrl('/'),
       error: (err: any) => {
         this.error =
           err?.error?.detail ||
