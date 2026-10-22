@@ -988,6 +988,11 @@ export class DashboardComponent {
   selectTab(tab: DashboardTab): void {
     this.activeTab = tab;
     this.menuOpen = false;
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // fallback
+    }
   }
 
   toggleTheme(): void {

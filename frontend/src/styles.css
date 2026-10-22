@@ -118,6 +118,12 @@ button { cursor: pointer; }
   font-weight: 550;
   transition: all .2s ease;
   position: relative;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 .nav-item:hover {
   color: #fff;

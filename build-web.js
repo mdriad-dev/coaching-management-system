@@ -45,3 +45,4 @@ if (fs.existsSync(sourceDist)) {
 }
 
 console.log('✓ Vercel build completed successfully in dist!');
+
